@@ -24,21 +24,55 @@ function currentKey() {
   return "hub";
 }
 
-function applyTheme(next) {
-  if (next) document.documentElement.setAttribute("data-theme", next);
-  else document.documentElement.removeAttribute("data-theme");
-  try {
-    if (next) localStorage.setItem("shelf-theme", next);
-    else localStorage.removeItem("shelf-theme");
-  } catch (e) {}
+function resolvedDark() {
+  const explicit = document.documentElement.getAttribute("data-theme");
+  if (explicit) return explicit === "dark";
+  return matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function updateThemeButton() {
   const btn = document.querySelector(".theme-btn");
   if (!btn) return;
-  const dark = document.documentElement.getAttribute("data-theme")
-    ? document.documentElement.getAttribute("data-theme") === "dark"
-    : matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = resolvedDark();
   btn.setAttribute("aria-pressed", dark ? "true" : "false");
   btn.textContent = dark ? "Light" : "Dark";
   btn.setAttribute("aria-label", dark ? "Switch to light colors" : "Switch to dark colors");
+}
+
+function syncThemeColor(pinned) {
+  const metas = document.querySelectorAll('meta[name="theme-color"]');
+  if (pinned === "light" || pinned === "dark") {
+    const color = pinned === "dark" ? "#161310" : "#f4efe6";
+    metas.forEach((m) => {
+      m.setAttribute("content", color);
+      m.removeAttribute("media");
+    });
+    return;
+  }
+  if (metas[0]) {
+    metas[0].setAttribute("content", "#f4efe6");
+    metas[0].setAttribute("media", "(prefers-color-scheme: light)");
+  }
+  if (metas[1]) {
+    metas[1].setAttribute("content", "#161310");
+    metas[1].setAttribute("media", "(prefers-color-scheme: dark)");
+  }
+}
+
+function applyTheme(next, persist) {
+  const pinned = next === "light" || next === "dark";
+  if (pinned) document.documentElement.setAttribute("data-theme", next);
+  else document.documentElement.removeAttribute("data-theme");
+  const scheme = document.querySelector('meta[name="color-scheme"]');
+  if (scheme) scheme.setAttribute("content", pinned ? next : "light dark");
+  syncThemeColor(pinned ? next : "");
+  if (persist) {
+    try {
+      if (pinned) localStorage.setItem("shelf-theme", next);
+      else localStorage.removeItem("shelf-theme");
+    } catch (e) {}
+  }
+  updateThemeButton();
 }
 
 function buildHeader() {
@@ -80,9 +114,7 @@ function buildHeader() {
   theme.type = "button";
   theme.className = "theme-btn";
   theme.addEventListener("click", () => {
-    const explicit = document.documentElement.getAttribute("data-theme");
-    const dark = explicit ? explicit === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-    applyTheme(dark ? "light" : "dark");
+    applyTheme(resolvedDark() ? "light" : "dark", true);
   });
   header.append(brand, nav, theme);
   return header;
@@ -92,4 +124,12 @@ const skip = document.querySelector(".skip");
 const header = buildHeader();
 if (skip) skip.after(header);
 else document.body.prepend(header);
-applyTheme(document.documentElement.getAttribute("data-theme"));
+applyTheme(document.documentElement.getAttribute("data-theme"), false);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (!document.documentElement.getAttribute("data-theme")) updateThemeButton();
+});
+window.addEventListener("storage", (e) => {
+  if (e.key !== "shelf-theme") return;
+  const next = e.newValue === "light" || e.newValue === "dark" ? e.newValue : "";
+  applyTheme(next, false);
+});

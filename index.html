@@ -3,10 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f4efe6">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("shelf-theme");
+    if (t !== "light" && t !== "dark") return;
+    document.documentElement.setAttribute("data-theme", t);
+    var scheme = document.querySelector('meta[name="color-scheme"]');
+    if (scheme) scheme.setAttribute("content", t);
+    var color = t === "dark" ? "#161310" : "#f4efe6";
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+      m.setAttribute("content", color);
+      m.removeAttribute("media");
+    });
+  } catch (e) {}
+})();
+</script>
+<meta name="text-scale" content="scale">
 <meta name="description" content="Open weekends, long weekends, and breaks through August 2027, with trip notes and school calendars.">
 <title>Family Time Before the Nest Empties</title>
+<link rel="canonical" href="https://shea-nelson.github.io/family-time/">
+<meta property="og:title" content="Family Time Before the Nest Empties">
+<meta property="og:description" content="Open weekends, long weekends, and breaks through August 2027, with trip notes and school calendars.">
+<meta property="og:url" content="https://shea-nelson.github.io/family-time/">
+<meta property="og:type" content="website">
 <link rel="icon" href="shelf/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +39,7 @@
 <script src="shelf/theme-init.js"></script>
 </head>
 <body data-root="./">
-<a class="skip" href="#app">Skip to family time</a>
+<a class="skip" href="#page-title">Skip to family time</a>
 <main id="app"><p class="loading">Loading the plan…</p></main>
 <noscript><p class="noscript">This page needs JavaScript to show the plan.</p></noscript>
 <script type="module" src="shelf/nav.js"></script>

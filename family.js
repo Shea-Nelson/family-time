@@ -1,11 +1,25 @@
 import { renderPage } from "./shelf/doc.js";
 
-const data = await fetch(new URL("data/family.json", import.meta.url).href).then((r) => {
-  if (!r.ok) throw new Error("family");
-  return r.json();
-});
-
 const app = document.querySelector("#app");
+
+function showLoadError() {
+  const p = document.createElement("p");
+  p.className = "noscript";
+  p.textContent = "The plan could not be loaded. Refresh the page to try again.";
+  app.replaceChildren(p);
+}
+
+let data;
+try {
+  const response = await fetch(new URL("data/family.json", import.meta.url).href);
+  if (!response.ok) throw new Error("family");
+  data = await response.json();
+} catch (e) {
+  showLoadError();
+}
+
+if (data && data.tree) {
+try {
 const host = document.createElement("div");
 app.replaceChildren(host);
 renderPage(data.tree, host);
@@ -44,7 +58,9 @@ function wire(table, kind) {
       label.className = "check noprint";
       const input = document.createElement("input");
       input.type = "checkbox";
+      input.id = "maybe-" + w.dates.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       input.dataset.dates = w.dates;
+      label.htmlFor = input.id;
       const saved = read("family-maybe", {});
       input.checked = !!saved[w.dates];
       input.addEventListener("change", () => {
@@ -111,4 +127,31 @@ if (ideaTable) {
     const kind = tr.cells[1] ? tr.cells[1].textContent : "";
     return kind === mode;
   });
+}
+
+function syncTableScroll() {
+  document.querySelectorAll(".table-wrap").forEach((wrap) => {
+    const cap = wrap.querySelector("caption");
+    const overflows = wrap.scrollWidth > wrap.clientWidth + 1;
+    if (overflows && cap && cap.id) {
+      wrap.tabIndex = 0;
+      wrap.setAttribute("role", "region");
+      wrap.setAttribute("aria-labelledby", cap.id);
+    } else {
+      wrap.removeAttribute("role");
+      wrap.removeAttribute("aria-labelledby");
+      wrap.removeAttribute("tabindex");
+    }
+  });
+}
+let scrollTimer = 0;
+window.addEventListener("resize", () => {
+  window.clearTimeout(scrollTimer);
+  scrollTimer = window.setTimeout(syncTableScroll, 150);
+});
+syncTableScroll();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncTableScroll);
+} catch (e) {
+  showLoadError();
+}
 }

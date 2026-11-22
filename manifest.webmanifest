@@ -1,0 +1,36 @@
+{
+  "name": "Family Time Before the Nest Empties",
+  "short_name": "Family Time",
+  "id": "/family-time/",
+  "start_url": "/family-time/",
+  "scope": "/family-time/",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#c9762e",
+  "icons": [
+    {
+      "src": "/family-time/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/family-time/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/family-time/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/family-time/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
